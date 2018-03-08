@@ -1,2 +1,2 @@
-# clear-wannamine
-powershell function to clear wannamine 
+# Bunch of PS functions
+
