@@ -59,9 +59,7 @@ function Show-ADStatus
         #Check all Domains
 
         foreach ($domain in $forestInfo.Domains) {
-            <#
-            $domain = 'kf.karlfazer.com'
-            #>
+
             $CurrentDomain = Get-ADDomain $domain | select name, parentDomain, Forest, DNSRoot, DomainControllersContainer, DomainMode, ReplicaDirectoryServers, InfrastructureMaster, PDCEmulator, RidMaster
 
             $CurrentDomain
