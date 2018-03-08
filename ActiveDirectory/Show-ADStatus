@@ -1,0 +1,91 @@
+function Show-ADStatus
+{
+<#
+.Synopsis
+   Gets status of current AD domain.
+.DESCRIPTION
+   Gets status of current AD domain. Default log path c:\temp
+.EXAMPLE
+   Show-ADDomainStatus -LogPath c:\ADlogs
+#>
+
+    [CmdletBinding()]
+    Param
+    (
+        # Param1 help description
+        [Parameter(Mandatory=$false,
+                   Position=0)]
+        $LogPath = 'c:\temp'
+    )
+
+    Begin
+        {
+        import-module activedirectory
+
+        #Create given log folder if it does not exist
+        if (-not (test-path $LogPath)) {
+                
+                new-item -Path $LogPath -ItemType Directory -Confirm:$false -Force -verbose
+
+                } # if (-not (test-path $LogPath)
+
+        }
+    Process
+        {
+        # Check forest information
+
+        $forestInfo    = Get-ADForest | select *
+        $forestInfo 
+
+        $rootDomainDN  = Get-ADDomain $forestInfo.Name | select -ExpandProperty DistinguishedName
+ 
+        $Version = [PSCustomObject]@{
+            'Schema Version'     = $(([ADSI]"LDAP://cn=schema,cn=configuration,$($rootDomain.DistinguishedName)").Properties.objectVersion)
+            'ForestPrep Version' = $(([ADSI]"LDAP://CN=ActiveDirectoryUpdate,CN=ForestUpdates,cn=configuration,$rootDomainDN").Properties.revision)
+            'RODCPrep Version'   = $(([ADSI]"LDAP://CN=ActiveDirectoryRodcUpdate,CN=ForestUpdates,cn=configuration,$rootDomainDN").Properties.revision)
+            'DomainPrep Version' = $(([ADSI]"LDAP://CN=ActiveDirectoryUpdate,CN=DomainUpdates,CN=System,$rootDomainDN").Properties.revision)
+            } #[PSCustomObject]
+        
+        $version
+
+        $Sites = Get-ADReplicationSubnet -Filter * | select Name,site | group site | select @{Name='Name';Expression={$_.Name.Split(',')[0].Trim('CN=')}},@{Name='Subnets';Expression={$_.Group.Name}}
+
+        $sites
+
+        Get-ADReplicationPartnerMetadata -Target * -Partition * | where {$_.partition -like "DC=*"} | 
+                Select-Object Server,Partition,@{N='Partner';E={$_.Partner.split(',')[1].Trim('CN=')}},ConsecutiveReplicationFailures,LastReplicationSuccess,LastRepicationResult | ft
+        
+
+        #Check all Domains
+
+        foreach ($domain in $forestInfo.Domains) {
+
+            $CurrentDomain = Get-ADDomain $domain | select name, parentDomain, Forest, DNSRoot, DomainControllersContainer, DomainMode, ReplicaDirectoryServers, InfrastructureMaster, PDCEmulator, RidMaster
+
+            $CurrentDomain
+            
+            $CurrentDomainReplicaServers = $CurrentDomain.ReplicaDirectoryServers
+            $CurrentDomainPDCEmulator = $CurrentDomain.PDCEmulator
+            
+            #get ad domaincontroller information
+            foreach ($dc in $CurrentDomainReplicaServers) {
+
+                $DCInfo = Get-ADDomainController $dc -server $CurrentDomainPDCEmulator | select Name, Forest, Domain, Site, IPv4Address, isGlobalcatalog, operatingSystem, operatingSystemVersion
+                $DCInfo
+
+                } # foreach ($dc in $CurrentDomain.ReplicaDirectoryServers)
+            
+            $ou = $($CurrentDomain.DomainControllersContainer)
+            
+            #check servers from DC OU
+            Get-ADComputer -SearchBase $OU -Filter * -Server $CurrentDomainPDCEmulator | ft name,DistinguishedName,enabled
+            
+            } # foreach ($domain in $forestInfo.Domains)
+        
+        
+        }
+    End
+        {
+
+        }
+}
