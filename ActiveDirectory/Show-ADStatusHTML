@@ -4,28 +4,35 @@ function Show-ADStatusHTML
 .Synopsis
    Gets status of current AD domain.
 .DESCRIPTION
-   Gets status of current AD domain. Default log path c:\temp
+   Gets status of current AD domain. Default log path c:\temp\AD-status.html
 .EXAMPLE
-   Show-ADStatusHTML | out-file c:\temp\Hello-AD.html
+   Show-ADStatusHTML LogPath h:\ad -FileName Hello-AD.html
 #>
 
     [CmdletBinding()]
     Param
     (
-        # Param1 help description
+        # LogPath defines where html file is created
         [Parameter(Mandatory=$false,
                    Position=0)]
-        $LogPath = 'c:\temp\Hello-AD.html'
+        $LogPath = 'c:\temp',
+    
+        # FileName of the report file
+        [Parameter(Mandatory=$false,
+                   Position=0)]
+        $FileName = 'AD-status.html'
     )
 
     Begin
         {
         import-module activedirectory
 
+        $LogFile = new-item -Path $LogPath -Name $FileName -ItemType File -Value $null
+
         #Create given log folder if it does not exist
         if (-not (test-path $LogPath)) {
                 
-                new-item -Path $LogPath -ItemType Directory -Confirm:$false -Force -verbose
+                new-item -Path $LogFile -ItemType Directory -Confirm:$false -Force -verbose
 
                 } # if (-not (test-path $LogPath)
 @"
@@ -120,50 +127,50 @@ a:active  {text-decoration:underline;}
     	<h1>Hello Active Directory</h1>
     </div>
 	<div id="Content">
-"@
+"@ | Out-File -FilePath $LogFile -Encoding UTF8
         }
     Process
         {
         # Check forest information
 
         $forestInfo    = Get-ADForest | select *
-        "<p><table>"
-        "<tr><th>Name</th><th>Root domain</th><th>Schema Master</th><th>Forest Mode</th></tr>"
-        "<tr><td>$($forestInfo.Name)</td><td>$($forestInfo.RootDomain)</td><td>$($forestInfo.SchemaMaster)</td><td>$($forestInfo.ForestMode)</td></tr>"
-        "</table></p>"
+        "<p><table>" | Out-File -FilePath $LogFile -Encoding UTF8 -Append
+        "<tr><th>Name</th><th>Root domain</th><th>Schema Master</th><th>Forest Mode</th></tr>" | Out-File -FilePath $LogFile -Encoding UTF8 -Append
+        "<tr><td>$($forestInfo.Name)</td><td>$($forestInfo.RootDomain)</td><td>$($forestInfo.SchemaMaster)</td><td>$($forestInfo.ForestMode)</td></tr>" | Out-File -FilePath $LogFile -Encoding UTF8 -Append
+        "</table></p>" | Out-File -FilePath $LogFile -Encoding UTF8 -Append
         $rootDomainDN  = Get-ADDomain $forestInfo.Name | select -ExpandProperty DistinguishedName
         
 
-        "<p><table><tr><th>Schema Version</th><th>ForestPrep Version</th><th>RODCPrep Version</th><th>DomainPrep Version</th></tr>"
-        "<tr>"
-             "<td>$(([ADSI]"LDAP://cn=schema,cn=configuration,$($rootDomain.DistinguishedName)").Properties.objectVersion)</td>"
-             "<td>$(([ADSI]"LDAP://CN=ActiveDirectoryUpdate,CN=ForestUpdates,cn=configuration,$rootDomainDN").Properties.revision)</td>"
-             "<td>$(([ADSI]"LDAP://CN=ActiveDirectoryRodcUpdate,CN=ForestUpdates,cn=configuration,$rootDomainDN").Properties.revision)</td>"
-             "<td>$(([ADSI]"LDAP://CN=ActiveDirectoryUpdate,CN=DomainUpdates,CN=System,$rootDomainDN").Properties.revision)</td>"
-        "</tr></table></p>"
+        "<p><table><tr><th>Schema Version</th><th>ForestPrep Version</th><th>RODCPrep Version</th><th>DomainPrep Version</th></tr>" | Out-File -FilePath $LogFile -Encoding UTF8 -Append
+        "<tr>" | Out-File -FilePath $LogFile -Encoding UTF8 -Append
+             "<td>$(([ADSI]"LDAP://cn=schema,cn=configuration,$($rootDomain.DistinguishedName)").Properties.objectVersion)</td>" | Out-File -FilePath $LogFile -Encoding UTF8 -Append
+             "<td>$(([ADSI]"LDAP://CN=ActiveDirectoryUpdate,CN=ForestUpdates,cn=configuration,$rootDomainDN").Properties.revision)</td>" | Out-File -FilePath $LogFile -Encoding UTF8 -Append
+             "<td>$(([ADSI]"LDAP://CN=ActiveDirectoryRodcUpdate,CN=ForestUpdates,cn=configuration,$rootDomainDN").Properties.revision)</td>" | Out-File -FilePath $LogFile -Encoding UTF8 -Append
+             "<td>$(([ADSI]"LDAP://CN=ActiveDirectoryUpdate,CN=DomainUpdates,CN=System,$rootDomainDN").Properties.revision)</td>" | Out-File -FilePath $LogFile -Encoding UTF8 -Append
+        "</tr></table></p>" | Out-File -FilePath $LogFile -Encoding UTF8 -Append
         
         
         $Sites = Get-ADReplicationSubnet -Filter * | select Name,site | group site | select @{Name='Name';Expression={$_.Name.Split(',')[0].Trim('CN=')}},@{Name='Subnets';Expression={$_.Group.Name}}
 
-        "<p><table>"
-        "<tr><th>Sites</th><th>Subnets</th></tr>"
+        "<p><table>" | Out-File -FilePath $LogFile -Encoding UTF8 -Append
+        "<tr><th>Sites</th><th>Subnets</th></tr>" | Out-File -FilePath $LogFile -Encoding UTF8 -Append
         foreach ($site in $sites) {
-            "<tr><td>$($site.name)</td><td>$((($site.subnets) -join ', ').ToString())</td></tr>"
+            "<tr><td>$($site.name)</td><td>$((($site.subnets) -join ', ').ToString())</td></tr>" | Out-File -FilePath $LogFile -Encoding UTF8 -Append
             
             }
-        "</table></p>"
+        "</table></p>" | Out-File -FilePath $LogFile -Encoding UTF8 -Append
         
         $replMetaData = Get-ADReplicationPartnerMetadata -Target * -Partition * | where {$_.partition -like "DC=*"} | 
                 Select-Object Server,Partition,@{N='Partner';E={$_.Partner.split(',')[1].Trim('CN=')}},ConsecutiveReplicationFailures,LastReplicationSuccess,LastRepicationResult
         
-        "<p><table>"
-        "<tr><th>Source</th><th>Destination</th><th>Partition</th><th>Consecutive Failures</th><th>Last Replication Success</th></tr>"
+        "<p><table>" | Out-File -FilePath $LogFile -Encoding UTF8 -Append
+        "<tr><th>Source</th><th>Destination</th><th>Partition</th><th>Consecutive Failures</th><th>Last Replication Success</th></tr>" | Out-File -FilePath $LogFile -Encoding UTF8 -Append
         foreach ($row in $replMetaData) {
             IF ($($row.ConsecutiveReplicationFailures) -gt 0) {$TD = 'red'} else {$TD = 'green'}
 
-            "<tr><td>$($row.server.split('.')[0])</td><td>$($row.partner)</td><td>$($row.Partition)</td><td id='$TD'>$($row.ConsecutiveReplicationFailures)</td><td>$($row.LastReplicationSuccess)</td></tr>"
+            "<tr><td>$($row.server.split('.')[0])</td><td>$($row.partner)</td><td>$($row.Partition)</td><td id='$TD'>$($row.ConsecutiveReplicationFailures)</td><td>$($row.LastReplicationSuccess)</td></tr>" | Out-File -FilePath $LogFile -Encoding UTF8 -Append
             }
-        "</table></p>"
+        "</table></p>" | Out-File -FilePath $LogFile -Encoding UTF8 -Append
 
 
         #Check all Domains
@@ -172,27 +179,27 @@ a:active  {text-decoration:underline;}
             
             $CurrentDomain = Get-ADDomain $domain | select name, parentDomain, Forest, DNSRoot, DomainControllersContainer, DomainMode, ReplicaDirectoryServers, InfrastructureMaster, PDCEmulator, RidMaster
             
-            "<p><table>"
-            "<tr><th>Name</th><th>Parent Domain</th><th>Forest</th><th>DNS Root</th><th>Domain Mode</th><th>Infrastructure Master</th><th>PDC Emulator</th><th>Rid Master</th></tr>"
-            "<tr><td>$($CurrentDomain.Name)</td><td>$($CurrentDomain.ParentDomain)</td><td>$($CurrentDomain.Forest)</td><td>$($CurrentDomain.DNSRoot)</td><td>$($CurrentDomain.DomainMode)</td><td>$($CurrentDomain.InfrastructureMaster)</td><td>$($CurrentDomain.PDCEmulator)</td><td>$($CurrentDomain.RidMaster)</td></tr>"
-            "</table></p>"
+            "<p><table>" | Out-File -FilePath $LogFile -Encoding UTF8 -Append
+            "<tr><th>Name</th><th>Parent Domain</th><th>Forest</th><th>DNS Root</th><th>Domain Mode</th><th>Infrastructure Master</th><th>PDC Emulator</th><th>Rid Master</th></tr>" | Out-File -FilePath $LogFile -Encoding UTF8 -Append
+            "<tr><td>$($CurrentDomain.Name)</td><td>$($CurrentDomain.ParentDomain)</td><td>$($CurrentDomain.Forest)</td><td>$($CurrentDomain.DNSRoot)</td><td>$($CurrentDomain.DomainMode)</td><td>$($CurrentDomain.InfrastructureMaster)</td><td>$($CurrentDomain.PDCEmulator)</td><td>$($CurrentDomain.RidMaster)</td></tr>" | Out-File -FilePath $LogFile -Encoding UTF8 -Append
+            "</table></p>" | Out-File -FilePath $LogFile -Encoding UTF8 -Append
             
             $CurrentDomainReplicaServers = $CurrentDomain.ReplicaDirectoryServers
             $CurrentDomainPDCEmulator = $CurrentDomain.PDCEmulator
             
             #get ad domaincontroller information
             
-            "<p><table>"
-            "<tr><th>Name</th><th>Domain</th><th>Site</th><th>IPv4Address</th><th>isGlobalcatalog</th><th>operatingSystem</th><th>operatingSystemVersion</th></tr>"
+            "<p><table>" | Out-File -FilePath $LogFile -Encoding UTF8 -Append
+            "<tr><th>Name</th><th>Domain</th><th>Site</th><th>IPv4Address</th><th>isGlobalcatalog</th><th>operatingSystem</th><th>operatingSystemVersion</th></tr>" | Out-File -FilePath $LogFile -Encoding UTF8 -Append
             
             foreach ($dc in $CurrentDomainReplicaServers) {
 
                 $DCInfo = Get-ADDomainController $dc -server $CurrentDomainPDCEmulator | select Name, Forest, Domain, Site, IPv4Address, isGlobalcatalog, operatingSystem, operatingSystemVersion
                 
-                "<tr><td>$($DCInfo.Name)</td><td>$($DCInfo.Domain)</td><td>$($DCInfo.Site)</td><td>$($DCInfo.IPv4Address)</td><td>$($DCInfo.isGlobalcatalog)</td><td>$($DCInfo.operatingSystem)</td><td>$($DCInfo.operatingSystemVersion)</td></tr>"
+                "<tr><td>$($DCInfo.Name)</td><td>$($DCInfo.Domain)</td><td>$($DCInfo.Site)</td><td>$($DCInfo.IPv4Address)</td><td>$($DCInfo.isGlobalcatalog)</td><td>$($DCInfo.operatingSystem)</td><td>$($DCInfo.operatingSystemVersion)</td></tr>" | Out-File -FilePath $LogFile -Encoding UTF8 -Append
                 
                 } # foreach ($dc in $CurrentDomain.ReplicaDirectoryServers)
-            "</table></p>"
+            "</table></p>" | Out-File -FilePath $LogFile -Encoding UTF8 -Append
             
             $ou = $($CurrentDomain.DomainControllersContainer)
             <#
@@ -210,7 +217,6 @@ a:active  {text-decoration:underline;}
 </body>
 </html>
 
-"@
+"@  | Out-File -FilePath $LogFile -Encoding UTF8 -Append
         }
 }
-
