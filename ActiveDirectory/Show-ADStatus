@@ -6,7 +6,7 @@ function Show-ADStatus
 .DESCRIPTION
    Gets status of current AD domain. Default log path c:\temp
 .EXAMPLE
-   Show-ADDomainStatus -LogPath c:\ADlogs
+   Show-ADStatus -LogPath c:\ADlogs
 #>
 
     [CmdletBinding()]
