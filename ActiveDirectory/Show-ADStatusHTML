@@ -6,7 +6,7 @@ function Show-ADStatusHTML
 .DESCRIPTION
    Gets status of current AD domain. Default log path c:\temp\AD-status.html
 .EXAMPLE
-   Show-ADStatusHTML LogPath h:\ad -FileName Hello-AD.html
+   Show-ADStatusHTML -LogPath h:\ad -FileName Hello-AD.html
 #>
 
     [CmdletBinding()]
