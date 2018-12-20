@@ -1,0 +1,72 @@
+###############################################
+# Detect Windows updates and install them. 
+# Write event log entries from the process
+# EventID 6000 for start and stop of process
+# EventID 6001 start installing patch
+# EventID 6002 finished patch installation
+# Aapeli Hietikko / 2018
+##############################################
+
+#detect updates
+(New-Object -ComObject "Microsoft.Update.AutoUpdate").DetectNow()
+
+#Create windows update installer object
+$objSystemInfo    = New-Object -ComObject "Microsoft.Update.SystemInfo"
+$WUSession        = New-Object -ComObject "Microsoft.Update.Session"
+$WUSearcher       = $WUSession.CreateUpdateSearcher()
+$AvailableUpdates = $WUSearcher.Search("IsInstalled = 0 and IsHidden=0")
+$WUInstaller      = $WUSession.CreateUpdateInstaller()
+
+#create event log source
+$log    = 'Application'
+$source = 'WindowsUpdate'
+
+#Check if source is created already. If not, then create it
+if (-not [System.Diagnostics.EventLog]::SourceExists($source))
+    {
+    New-EventLog -LogName $log -Source $source
+    }
+
+#write log from start
+Write-EventLog -LogName $log -Source $source -EventID 6000 -EntryType Information -Message "Windows update started" -Category 1 -RawData 10,20
+
+#Check available update count and install each udpate
+#Write events to event log
+$updateCount = $AvailableUpdates.Updates.count
+$i=0
+
+#install available updates
+Foreach($Update in $AvailableUpdates.Updates) 
+    {
+
+    $i++
+    $updateTitle = $update.Title
+
+    Write-EventLog -LogName $log -Source $source -EventID 6001 -EntryType Information -Message "Started [$i/$updateCount] $updateTitle" -Category 1 -RawData 10,20
+
+  	$WUUcollection = New-Object -ComObject "Microsoft.Update.UpdateColl"
+	  $WUUcollection.Add($Update) | Out-Null
+					
+	  $WUInstaller = $WUSession.CreateUpdateInstaller()
+	  $WUInstaller.Updates = $WUUcollection
+	
+   	$WUInstaller.Install()
+    
+    Write-EventLog -LogName $log -Source $source -EventID 6002 -EntryType Information -Message "Finished [$i/$updateCount] $updateTitle" -Category 1 -RawData 10,20
+    
+  	}
+
+#check if there is pending reboot and finish
+if ($objSystemInfo.RebootRequired) 
+    {
+
+    Write-EventLog -LogName $log -Source $source -EventID 6000 -EntryType Information -Message "Windows update cycle has finished and server will be rebooted" -Category 1 -RawData 10,20
+	Shutdown /r /f /t 0
+    
+    }
+else
+    {
+
+    Write-EventLog -LogName $log -Source $source -EventID 6000 -EntryType Information -Message "Windows update finished and reboot is not required" -Category 1 -RawData 10,20
+    
+    }
