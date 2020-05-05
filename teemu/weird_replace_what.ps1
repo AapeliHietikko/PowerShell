@@ -9,29 +9,38 @@ $table = "
 </table>
 "
 
+$allUsers = 'noob1','noob2','pro01','pro02'
+
 $class='xxx'
 
 
-foreach ($row in $table.split([Environment]::NewLine)) {
+foreach ($row in $table.split([Environment]::NewLine)) 
+{
 
-    $grp = $row | Select-String -Pattern "<tr><td>.*</td><td>(.*)</td><td>" -AllMatches
+    $grp = $row | Select-String -Pattern "<tr>.*</tr>"
 
-    if ($grp) {
-
-        $user = $grp.Matches.groups[1].value
-       
-        if ($user -ne $lastUser)
-            {
-            if($class -eq 'xxx') {$class='yyy'}
-            else {$class='xxx'}
-            }
-   
-        $row.Replace('<tr>',"<tr class=$($class)>")
-        
-        $lastUser = $user
-        }
-    else
+    if($grp)
+    {
+        foreach ($user in $allUsers) 
         {
-        $row
+            
+            if ($grp -match $user) 
+            {
+                
+                if ($user -ne $lastUser)
+                {
+                    if($class -eq 'xxx') {$class='yyy'}
+                    else {$class='xxx'}
+                }
+   
+            $row.Replace('<tr>',"<tr class=$($class)>")
+            }
+            
+            $lastUser = $user
         }
     }
+    else 
+    {
+        $row
+    }
+}
