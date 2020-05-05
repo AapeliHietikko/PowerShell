@@ -49,7 +49,7 @@ $htmlTableRows = foreach ($object in $InputObjects)
     $htmlTableRow = "<tr class=$class> <td>$($object.col1)</td> <td>$($object.name)</td> "   
     $htmlTableRow += foreach ($inputHeader in $inputHeaders){
         
-        "<td>$inputHeader</td>"
+        "<td>$($object.$inputHeader)</td>"
         
         }
     $htmlTableRow += " </tr>"
