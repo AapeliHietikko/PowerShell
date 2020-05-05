@@ -34,9 +34,8 @@ foreach ($row in $table.split([Environment]::NewLine))
                 }
    
             $row.Replace('<tr>',"<tr class=$($class)>")
-            }
-            
             $lastUser = $user
+            }
         }
     }
     else 
