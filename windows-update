@@ -11,7 +11,6 @@
 (New-Object -ComObject "Microsoft.Update.AutoUpdate").DetectNow()
 
 #Create windows update installer object
-$objSystemInfo    = New-Object -ComObject "Microsoft.Update.SystemInfo"
 $WUSession        = New-Object -ComObject "Microsoft.Update.Session"
 $WUSearcher       = $WUSession.CreateUpdateSearcher()
 $AvailableUpdates = $WUSearcher.Search("IsInstalled = 0 and IsHidden=0")
@@ -57,7 +56,9 @@ Foreach($Update in $AvailableUpdates.Updates)
   	}
 
 #check if there is pending reboot and finish
-if ($objSystemInfo.RebootRequired) 
+$systemInfo    = New-Object -ComObject "Microsoft.Update.SystemInfo"
+
+if ($systemInfo.RebootRequired) 
     {
 
     Write-EventLog -LogName $log -Source $source -EventID 6000 -EntryType Information -Message "Windows update cycle has finished and server will be rebooted" -Category 1 -RawData 10,20
