@@ -11,7 +11,7 @@ $localUserPaths | foreach {
 
     if (-not ($_.basename -in $activeSamids)) {
 
-        $_.localpath
+        $_
 
         }
 }
