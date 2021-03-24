@@ -1,8 +1,6 @@
 #haetaan sisäänkirjautuneet käyttäjät edelliseltä 30 päivältä.
 #haku tehdään sisäänkirjautumisen perusteella
-$activeUsers = Get-EventLog System -Source Microsoft-Windows-WinLogon -After (Get-Date).AddDays(-30) |
-    select @{N='User';E={(New-Object System.Security.Principal.SecurityIdentifier $_.ReplacementStrings[1]).Translate([System.Security.Principal.NTAccount])}},* |
-        Group-Object ReplacementStrings | select *,@{N='time';E={$_.group[0].TimeGenerated}}
+$activeUsers = Get-EventLog System -Source Microsoft-Windows-WinLogon -After (Get-Date).AddDays(-30) | Group-Object ReplacementStrings
 
 
 $localUserPaths = Get-WmiObject -class win32_userprofile -Filter "special='False'" | 
@@ -10,7 +8,7 @@ $localUserPaths = Get-WmiObject -class win32_userprofile -Filter "special='False
 
 
 #hypätään näiden tunnusten yli
-$skipUsers = "järjestelmänvalvoja","administrator","hieti*"
+$skipUsers = "defaultuser1","administrator","hieti*"
 
 $localUserPathsToRemove = foreach ($localUserPath in $localUserPaths)
 {
@@ -39,16 +37,17 @@ $localUserPathsToRemove = foreach ($localUserPath in $localUserPaths)
 
 } # foreach ($localUserPath in $localUserPaths)
 
-$activeSamids = $activeUsers.name | foreach {
-    $_.split('\')[-1]
-}
+#find Active user SIDs
+$activeSIDs = $activeUsers.values | foreach {
+    $_[-1]
+} # $activeUsers.values | foreach
 
 #deletointi kommentoitu ulos. Poista -Whatif ja # merkki, niin johan lähtee profiilit
 $localUserPathsToRemove | foreach {
 
-    if (-not ($_.basename -in $activeSamids)) {
+    if ($_.basename -notin $activeSIDs) {
 
         Get-WmiObject -class win32_userprofile -Filter "LocalPath='$($_.wmiFilterPath)'" | Remove-WmiObject -WhatIf #-confirm:0 -force
 
-        }
-}
+        } # if ($_.basename -notin $activeSIDs)
+} # $localUserPathsToRemove | foreach
