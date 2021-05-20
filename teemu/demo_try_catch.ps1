@@ -5,7 +5,7 @@ try
 }
 catch
 {
-    "remove item pCFG 5 failed" | Out-File c:\temp\asentaja\logi,txt
+    "remove item pCFG 5 failed" | Out-File c:\temp\asentaja\logi.txt -Append
 }
 
 try 
@@ -15,5 +15,5 @@ try
 }
 catch
 {
-    "remove item pCFG 4 failed" | Out-File c:\temp\asentaja\logi,txt
+    "remove item pCFG 4 failed" | Out-File c:\temp\asentaja\logi.txt -Append
 }
