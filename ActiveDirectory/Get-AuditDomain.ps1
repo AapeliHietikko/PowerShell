@@ -2,13 +2,11 @@ function Get-AuditDomain
 {
 <#
 .Synopsis
-   Short description
+   fetch ad domain data
 .DESCRIPTION
-   Long description
+   fetch Active Directory domain data
 .EXAMPLE
-   Example of how to use this cmdlet
-.EXAMPLE
-   Another example of how to use this cmdlet
+   Get-AuditDomain -OutputLocation .\Desktop\ad_rep -Server domain.name
 #>
     [CmdletBinding()]
     [Alias("GAD")]
