@@ -1,9 +1,9 @@
 param ($Message, $Bot)
 
-if ($Message.Text -like '!Serie*')
+if ($Message.Text -like 'ape series *')
 {
 
-    $Title  = ($Message.Text).trimstart('!Serie ')
+    $Title  = ($Message.Text).trimstart('ape series ')
     $search = (([regex]::split($Title, '(S\d\dE\d\d)')[0]).trimEnd('.').trimStart('.').replace('.',' ')).toString()
 
     $irm = Invoke-RestMethod "https://api.tvmaze.com/search/shows?q=$search"
