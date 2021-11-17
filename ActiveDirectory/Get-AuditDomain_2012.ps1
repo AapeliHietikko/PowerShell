@@ -34,7 +34,7 @@ function Get-AuditDomain
         [Parameter(Mandatory=$false,
                    ValueFromPipelineByPropertyName=$true,
                    Position=3)]
-        $Time=(get-date -Format yyyyMMdd).toString(),
+        $Time=(get-date -Format yyyyMMddhhmmss).toString(),
 
         [Parameter(Mandatory=$false,
                    Position=4)]
