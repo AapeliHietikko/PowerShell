@@ -35,8 +35,13 @@
 
     if ($vulnerable)
     {
-    "log4j vulnerability found"
-    $output
+        $java = get-process java
+        if($java)
+        {
+        "$($java.count) instance(s) of java running"
+        }
+        
+        $output
     }
     else
     {
