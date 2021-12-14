@@ -42,8 +42,7 @@
         }
         
         $output
-    }
-    else
+    } else
     {
     "no log4j vulnerability found"
     }
