@@ -8,7 +8,7 @@ $targetManifestFile = "$logFolder\log4j-manifest.txt"
 $jarFiles   = Get-PSDrive | Where-Object { $_.Name.length -eq 1 } | Select-Object -ExpandProperty Root | Get-ChildItem -File -Recurse -Filter $log4Filter -ea 0 | foreach {select-string "JndiLookup.class" $_} | select -ExpandProperty Path
 
 
-foreach ($jarFile in $jarFiles | select -First 1)
+foreach ($jarFile in $jarFiles)
 {
     $zip = [System.IO.Compression.ZipFile]::OpenRead($jarFile)
 
