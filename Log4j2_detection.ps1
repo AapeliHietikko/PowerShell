@@ -1,3 +1,9 @@
+    <#
+    based on this one, I think. Got the original code through teams chat
+    https://github.com/sp4ir/incidentresponse/blob/main/Get-Log4shellVuln.ps1
+    #>
+    
+    
     Add-Type -AssemblyName System.IO.Compression
     Add-Type -AssemblyName System.IO.Compression.FileSystem
     
