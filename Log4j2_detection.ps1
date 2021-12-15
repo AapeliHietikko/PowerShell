@@ -7,33 +7,43 @@
     $targetManifestFile = "$logFolder\log4j-manifest.txt"
     
     $jarFiles   = Get-PSDrive | Where-Object { $_.Name.length -eq 1 } | Select-Object -ExpandProperty Root | Get-ChildItem -File -Recurse -Filter $log4Filter -ea 0
-    $Log4JFiles = $jarFiles | foreach {select-string "JndiLookup.class" $_} | select -ExpandProperty Path | Group-Object | select -expand name
         
-    $output = foreach ($jarFile in $Log4JFiles)
+    $output = foreach ($jarFile in $jarFiles)
     {
-        $zip = [System.IO.Compression.ZipFile]::OpenRead($jarFile)
+        $jndiLookup = $false
+
+        if ($jarFile | foreach {select-string "JndiLookup.class" $_}) 
+            { 
+            
+                $jndiLookup = $true
+            
+                $zip = [System.IO.Compression.ZipFile]::OpenRead($jarFile.FullName)
+                $zip.Entries | Where-Object { $_.FullName -eq 'META-INF/MANIFEST.MF' } | ForEach-Object {
+                [System.IO.Compression.ZipFileExtensions]::ExtractToFile($_, $targetManifestFile, $true)
+                $implementationVersion = (Get-Content $targetManifestFile | Where-Object { $_ -like 'Implementation-Version: *' }).ToString()
+                $modifyDate = (gci $targetManifestFile).LastWriteTime
+                
+                Remove-Item $targetManifestFile -ErrorAction SilentlyContinue
+                
+                $implementationVersion_ = [version]$implementationVersion.Replace('Implementation-Version: ', '')
+                
+                } #zipEntries
+
+                
+                if ($implementationVersion_ -lt '2.16.0') {
+
+                     $vulnerable = 1
+                
+                } #if implementation version
     
-        $zip.Entries | Where-Object { $_.FullName -eq 'META-INF/MANIFEST.MF' } | ForEach-Object {
-            [System.IO.Compression.ZipFileExtensions]::ExtractToFile($_, $targetManifestFile, $true)
-            $implementationVersion = (Get-Content $targetManifestFile | Where-Object { $_ -like 'Implementation-Version: *' }).ToString()
-            $modifyDate = (gci $targetManifestFile).LastWriteTime
-    
-            Remove-Item $targetManifestFile -ErrorAction SilentlyContinue
-    
-            $implementationVersion_ = [version]$implementationVersion.Replace('Implementation-Version: ', '')
+            } #if ($jarfile)
 
             [PSCustomObject][ordered]@{
-                'FilePath'   = $jarFile
+                'FilePath'   = $jarFile.FullName
                 #'Version'    = $implementationVersion_
                 #'ModifyDate' = $modifyDate 
-                'JndiLookup' = $true
+                'JndiLookup' = $jndiLookup
                 }
-            
-            if ($implementationVersion_ -lt '2.16.0') {
-                 $vulnerable = 1
-            } #if implementation version
-    
-        } #zipentries
     
     } #foreach jarFiles
 
@@ -52,6 +62,3 @@
     }    
 
 $output
-#$jarFiles | select @{N='FilePath';e={$_.fullName}}, @{N='Version';e={""}}, @{N='ModifyDate';e={$_.LastWriteTime}}, @{N='JndiLookup';e={$false}}
- $jarFiles | select @{N='FilePath';e={$_.fullName}}, @{N='JndiLookup';e={$false}}
-    
