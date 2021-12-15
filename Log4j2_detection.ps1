@@ -16,7 +16,7 @@ $log4Filter         = "*.jar"
 $targetManifestFile = "$logFolder\log4j-manifest.txt"
 
 #find all jar files which contains log4j
-log-timestamp -padding 10 -log "Searching $log4Filter files"
+log-timestamp -padding 10 -log "Searching $log4Filter files which include log4j"
 $jarFiles   = Get-PSDrive | Where-Object { $_.Name.length -eq 1 } | Select-Object -ExpandProperty Root | Get-ChildItem -File -Recurse -Filter $log4Filter -ea 0  | foreach {select-string "log4j" $_} | select -ExpandProperty path | Group-Object | select -ExpandProperty name
 log-timestamp -padding 10 -log "Found $($jarFiles.count) $log4Filter files"
 
