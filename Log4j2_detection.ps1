@@ -13,12 +13,13 @@ $skippedFiles       = 0
 $vuln4j2            = $false
 $logFolder          = $env:TEMP
 $log4Filter         = "*.jar"
+$log4ss             = "log4j\d"
 $targetManifestFile = "$logFolder\log4j-manifest.txt"
 
 #find all jar files which contains log4j
-log-timestamp -padding 10 -log "Searching $log4Filter files which include log4j"
-$jarFiles   = Get-PSDrive | Where-Object { $_.Name.length -eq 1 } | Select-Object -ExpandProperty Root | Get-ChildItem -File -Recurse -Filter $log4Filter -ea 0  | foreach {select-string "log4j" $_} | select -ExpandProperty path | Group-Object | select -ExpandProperty name
-log-timestamp -padding 10 -log "Found $($jarFiles.count) $log4Filter files"
+log-timestamp -padding 10 -log "Searching $log4Filter files which include $log4ss"
+$jarFiles   = Get-PSDrive | Where-Object { $_.Name.length -eq 1 } | Select-Object -ExpandProperty Root | Get-ChildItem -File -Recurse -Filter $log4Filter -ea 0  | foreach {select-string $log4ss $_} | select -ExpandProperty path | Group-Object | select -ExpandProperty name
+log-timestamp -padding 15 -log "Found $($jarFiles.count)"
 
 #loop through jar files and determine their status
 $output = foreach ($jarFile in $jarFiles)
@@ -88,7 +89,7 @@ $output = foreach ($jarFile in $jarFiles)
 
 
 ##Formatting Output
-log-timestamp -padding 10 -log "skipped files $skippedFiles"
+log-timestamp -padding 15 -log "skipped files $skippedFiles"
 
 if ($vuln4j2)
 {
