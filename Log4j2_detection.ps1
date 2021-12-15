@@ -1,8 +1,8 @@
-function log-timestamp($log,$padding){
+function log-timestamp($log){
     Write-Host "[" -ForegroundColor red -NoNewline
     Write-Host "$(get-date -format 'yyyy-MM-dd hh:mm:ss')" -ForegroundColor White -NoNewline
     Write-Host "]`t" -ForegroundColor red -NoNewline
-    Write-Host ("{0,$padding}" -f $log) -ForegroundColor White
+    Write-Host $log -ForegroundColor White
 }
 
 #initialize environment
@@ -17,9 +17,9 @@ $log4ss             = "log4j\d"
 $targetManifestFile = "$logFolder\log4j-manifest.txt"
 
 #find all jar files which contains log4j
-log-timestamp -padding 10 -log "Searching $log4Filter files which include $log4ss"
+log-timestamp -log "Searching $log4Filter files which include $log4ss"
 $jarFiles   = Get-PSDrive | Where-Object { $_.Name.length -eq 1 } | Select-Object -ExpandProperty Root | Get-ChildItem -File -Recurse -Filter $log4Filter -ea 0  | foreach {select-string $log4ss $_} | select -ExpandProperty path | Group-Object | select -ExpandProperty name
-log-timestamp -padding 15 -log "Found $($jarFiles.count)"
+log-timestamp -log "`tFound $($jarFiles.count)"
 
 #loop through jar files and determine their status
 $output = foreach ($jarFile in $jarFiles)
@@ -79,7 +79,7 @@ $output = foreach ($jarFile in $jarFiles)
          #skip files without implementation version
          $skippedFiles++
          #this output can be used to retrieve skipped file names
-         #log-timestamp -padding 10 -log "ImplementationVersion not found in $jarFile"
+         #log-timestamp -log "ImplementationVersion not found in $jarFile"
          
         } # catch
 
@@ -89,7 +89,7 @@ $output = foreach ($jarFile in $jarFiles)
 
 
 ##Formatting Output
-log-timestamp -padding 15 -log "skipped files $skippedFiles"
+log-timestamp -log "`tskipped files $skippedFiles"
 
 if ($vuln4j2)
 {
@@ -97,12 +97,12 @@ if ($vuln4j2)
     $java = get-process java*
     if($java)
     {
-    log-timestamp -padding 10 -log "$($java.count) instance(s) of java running"
+    log-timestamp -log "$($java.count) instance(s) of java running"
     }
 
 } else
 {
-    log-timestamp -padding 10 -log "no log4j2 vulnerability found"
+    log-timestamp -log "No log4j2 vulnerability found"
 }  
       
 $output
