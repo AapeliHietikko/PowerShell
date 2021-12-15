@@ -8,7 +8,7 @@ function log-timestamp($log,$padding){
     Add-Type -AssemblyName System.IO.Compression
     Add-Type -AssemblyName System.IO.Compression.FileSystem
     
-    $vuln4j2
+    $vuln4j2            = $false
     $logFolder          = $env:TEMP
     $log4Filter         = "log4j*.jar"
     $targetManifestFile = "$logFolder\log4j-manifest.txt"
