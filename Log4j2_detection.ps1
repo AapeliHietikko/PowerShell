@@ -26,7 +26,7 @@
             Remove-Item $targetManifestFile -ErrorAction SilentlyContinue
     
             $implementationVersion_ = [version]$implementationVersion.Replace('Implementation-Version: ', '')
-            if ($implementationVersion_ -lt '2.15.0' -and $modifyDate -lt (get-date 9.12.2021)) {
+            if ($implementationVersion_ -lt '2.16.0') {
                 [PSCustomObject][ordered]@{
                     'FilePath'   = $jarFile
                     'Version'    = $implementationVersion_
@@ -41,7 +41,8 @@
 
     if ($vulnerable)
     {
-        $java = get-process java
+        #find java processes
+        $java = get-process java*
         if($java)
         {
         "$($java.count) instance(s) of java running"
