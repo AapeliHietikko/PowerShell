@@ -8,16 +8,17 @@ function log-timestamp($log,$padding){
     Add-Type -AssemblyName System.IO.Compression
     Add-Type -AssemblyName System.IO.Compression.FileSystem
     
+    $skippedFiles       = 0
     $vuln4j2            = $false
     $logFolder          = $env:TEMP
-    $log4Filter         = "log4j*.jar"
+    $log4Filter         = "*.jar"
     $targetManifestFile = "$logFolder\log4j-manifest.txt"
 
     log-timestamp -padding 10 -log "Searching $log4Filter files"
     
-    $jarFiles   = Get-PSDrive | Where-Object { $_.Name.length -eq 1 } | Select-Object -ExpandProperty Root | Get-ChildItem -File -Recurse -Filter $log4Filter -ea 0
+    $jarFiles   = Get-PSDrive | Where-Object { $_.Name.length -eq 1 } | Select-Object -ExpandProperty Root | Get-ChildItem -File -Recurse -Filter $log4Filter -ea 0  | foreach {select-string "log4j" $_} | select -ExpandProperty path | Group-Object | select -ExpandProperty name
 
-    log-timestamp -padding 10 -log "Found $($jarFiles.count) jar files"
+    log-timestamp -padding 10 -log "Found $($jarFiles.count) $log4Filter files"
 
     $output = foreach ($jarFile in $jarFiles)
     {
@@ -31,35 +32,47 @@ function log-timestamp($log,$padding){
 
             } #if ($jarfile)
                         
-         $zip = [System.IO.Compression.ZipFile]::OpenRead($jarFile.FullName)
+         $zip = [System.IO.Compression.ZipFile]::OpenRead($jarFile)
          $zip.Entries | Where-Object { $_.FullName -eq 'META-INF/MANIFEST.MF' } | ForEach-Object {
-         [System.IO.Compression.ZipFileExtensions]::ExtractToFile($_, $targetManifestFile, $true)
-         $implementationVersion = [version]((Get-Content $targetManifestFile | Where-Object { $_ -like 'Implementation-Version: *' }).ToString().Replace('Implementation-Version: ', ''))
-         $modifyDate = (Get-ChildItem $targetManifestFile).LastWriteTime
-         
-         Remove-Item $targetManifestFile -ErrorAction SilentlyContinue -Force       
-         
-         } #zipEntries
+            [System.IO.Compression.ZipFileExtensions]::ExtractToFile($_, $targetManifestFile, $true)
+            try 
+            {
+            
+               $implementationVersion = [version]((Get-Content $targetManifestFile | Where-Object { $_ -like 'Implementation-Version: *' }).ToString().Replace('Implementation-Version: ', ''))
+            
+            
+               $modifyDate = (Get-ChildItem $targetManifestFile).LastWriteTime
+               
+               Remove-Item $targetManifestFile -ErrorAction SilentlyContinue -Force       
+               
+              
+               if ($implementationVersion -lt '2.16.0') {
 
-         
-         if ($implementationVersion -lt '2.16.0') {
-
-              $vulnerable = $true
-         
-            if ($implementationVersion.major -ge 2)
-                {
-                $vuln4j2 = $true
-                }
-         } #if implementation version
+                    $vulnerable = $true
+               
+                  if ($implementationVersion.major -ge 2)
+                      {
+                      $vuln4j2 = $true
+                      }
+               } #if implementation version
     
 
-         [PSCustomObject][ordered]@{
-                'FilePath'   = $jarFile.FullName
-                'Version'    = $implementationVersion
-                #'ModifyDate' = $modifyDate 
-                'JndiLookup' = $jndiLookup
-                'Vulnerable' = $vulnerable
-                }
+               [PSCustomObject][ordered]@{
+                      'FilePath'   = $jarFile
+                      'Version'    = $implementationVersion
+                      #'ModifyDate' = $modifyDate 
+                      'JndiLookup' = $jndiLookup
+                      'Vulnerable' = $vulnerable
+                      }
+            
+            } #try
+            catch
+            {
+             $skippedFiles++
+             #log-timestamp -padding 10 -log "ImplementationVersion not found in $($jarFile.FullName)"
+            } # catch
+
+         } #zipEntries
     
     } #foreach jarFiles
 
@@ -76,5 +89,5 @@ function log-timestamp($log,$padding){
     {
     log-timestamp -padding 10 -log "no log4j2 vulnerability found"
     }    
-
+log-timestamp -padding 10 -log "skipped files $skippedFiles"
 $output
