@@ -58,7 +58,7 @@
 
     } else
     {
-    "no log4j vulnerability found"
+    "no log4j2 vulnerability found"
     }    
 
 $output
