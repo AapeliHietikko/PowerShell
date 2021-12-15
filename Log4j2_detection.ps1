@@ -89,7 +89,7 @@ $output = foreach ($jarFile in $jarFiles)
 
 
 ##Formatting Output
-log-timestamp -log "`tskipped files $skippedFiles"
+log-timestamp -log "`tSkipped $skippedFiles"
 
 if ($vuln4j2)
 {
