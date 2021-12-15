@@ -21,7 +21,7 @@ function log-timestamp($log,$padding){
 
     $output = foreach ($jarFile in $jarFiles)
     {
-        $vulnerable = $true
+        $vulnerable = $false
         $jndiLookup = $false
 
         if ($jarFile | foreach {select-string "JndiLookup.class" $_}) 
