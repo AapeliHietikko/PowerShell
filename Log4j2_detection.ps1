@@ -2,6 +2,9 @@ function log-timestamp($log){
     Write-Host "[" -ForegroundColor red -NoNewline
     Write-Host "$(get-date -format 'yyyy-MM-dd hh:mm:ss')" -ForegroundColor White -NoNewline
     Write-Host "]`t" -ForegroundColor red -NoNewline
+    Write-Host "[" -ForegroundColor red -NoNewline
+    Write-Host $env:COMPUTERNAME -ForegroundColor White -NoNewline
+    Write-Host "]`t" -ForegroundColor red -NoNewline
     Write-Host $log -ForegroundColor White
 }
 
