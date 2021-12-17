@@ -40,14 +40,7 @@ $output = foreach ($jarFile in $jarFiles)
             $jndiLookup = $true
 
         } #if ($jarfile)
-     
-    [PSCustomObject][ordered]@{
-      'FilePath'   = $jarFile
-      'Version'    = $implementationVersion
-      #'ModifyDate' = $modifyDate 
-      'JndiLookup' = $jndiLookup
-      'Vulnerable' = $vulnerable
-      }
+    "" | select @{N='FilePath';E={$jarFile}}, @{N='Version';E={$null}}, @{N='';E={$jndiLookup}}, @{N='';E={$null}} 
 
 } #$output = foreach
 
