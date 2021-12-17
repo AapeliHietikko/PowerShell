@@ -40,7 +40,7 @@ $output = foreach ($jarFile in $jarFiles)
             $jndiLookup = $true
 
         } #if ($jarfile)
-    "" | select @{N='FilePath';E={$jarFile}}, @{N='Version';E={$null}}, @{N='';E={$jndiLookup}}, @{N='';E={$null}} 
+    "" | select @{N='FilePath';E={$jarFile}}, @{N='Version';E={$null}}, @{N='jndiLookup';E={$jndiLookup}}, @{N='Vulnerable';E={$null}} 
 
 } #$output = foreach
 
