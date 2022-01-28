@@ -1,3 +1,5 @@
+
+
 function Create-EventLogReport
 {
 <#
@@ -91,7 +93,7 @@ function Create-EventLogReport
         
         if(-not $console) {
 
-            $events | select MachineName, LogName, Id, MD_SubjectDomainName, MD_SubjectUserName, MD_IpAddress | 
+            $events | select MachineName, LogName, Id, TimeCreated, MD_SubjectDomainName, MD_SubjectUserName, MD_IpAddress | 
                 export-csv "$Output\$date-EventLogReport.csv" -NTI -Delimiter ';'
             "Report written to $Output\$date-EventLogReport.csv"
         }
@@ -101,5 +103,3 @@ function Create-EventLogReport
 
     }
 }
-
-
