@@ -1,3 +1,6 @@
+#IP api tools
+
+
 function Invoke-IPReputationCheck
 {
     [CmdletBinding()]
@@ -5,7 +8,7 @@ function Invoke-IPReputationCheck
 
     Param
     (
-        # IP address to check
+        # Param1 help description
         [Parameter(Mandatory=$true,
                    ValueFromPipelineByPropertyName=$true,
                    Position=0)]
@@ -68,14 +71,14 @@ $uriMalti    = "https://api.maltiverse.com/ip/$ip"
 WL
 try {
     $responseVT = Invoke-RestMethod -Method Get -Headers $headerVT -Uri $uriVT
-    write-host "VirusTotal`t" -NoNewline
+    write-host "VirusTotal`t`t`t`t" -NoNewline
     Write-Host "Success" -ForegroundColor green
 } catch
 {
-    write-host "VirusTotal`t" -NoNewline
+    write-host "VirusTotal`t`t`t`t" -NoNewline
     Write-Host "Failed" -ForegroundColor Red
 }
-try {
+<#try {
     $responseABCH = Invoke-RestMethod -Method Post -Uri $uriABCH -Body $BodyABCH
     write-host "Abuse.ch`t" -NoNewline
     Write-Host "Success" -ForegroundColor green
@@ -83,81 +86,84 @@ try {
 {
     write-host "Abuse.ch`t" -NoNewline
     Write-Host "Failed" -ForegroundColor Red
-}
+} #>
 try {
     $responseAIPDB = Invoke-RestMethod -Method Get -Headers $headerAIPDB -Uri $uriAIPDB -Body $BodyAIPDB -ContentType "application/x-www-form-urlencoded"
-    write-host "AbuseIPDB`t" -NoNewline
+    write-host "AbuseIPDB`t`t`t`t" -NoNewline
     Write-Host "Success" -ForegroundColor green
 } catch
 {
-    write-host "AbuseIPDB`t" -NoNewline
+    write-host "AbuseIPDB`t`t`t`t" -NoNewline
     Write-Host "Failed" -ForegroundColor Red
 }
 try {
 $responseAlien = Invoke-RestMethod -Method Get -Headers $headerAlien -Uri $uriAlien
-    write-host "AlienVault`t" -NoNewline
+    write-host "AlienVault`t`t`t`t" -NoNewline
     Write-Host "Success" -ForegroundColor green
 } catch
 {
-    write-host "AlienVault`t" -NoNewline
+    write-host "AlienVault`t`t`t`t" -NoNewline
     Write-Host "Failed" -ForegroundColor Red
 }
 try {
 $responseShoda = Invoke-RestMethod -Method Get -Uri $uriShoda -Body $BodyShoda -ContentType "application/x-www-form-urlencoded"
-    write-host "Shodan.io`t" -NoNewline
+    write-host "Shodan.io`t`t`t`t" -NoNewline
     Write-Host "Success" -ForegroundColor green
 } catch
 {
-    write-host "Shodan.io`t" -NoNewline
+    write-host "Shodan.io`t`t`t`t" -NoNewline
     Write-Host "Failed" -ForegroundColor Red
 }
 try {
 $responseMalti = Invoke-RestMethod -Method Get -Headers $headerMalti -Uri $uriMalti
-    write-host "Maltiverse`t" -NoNewline
+    write-host "Maltiverse`t`t`t`t" -NoNewline
     Write-Host "Success" -ForegroundColor green
 } catch
 {
-    write-host "Maltiverse`t" -NoNewline
+    write-host "Maltiverse`t`t`t`t" -NoNewline
     Write-Host "Failed" -ForegroundColor Red
 }
 WL
 Write-Host "
-AbuseIPDB: ISP:       $($responseAIPDB.data.isp)
-AbuseIPDB: Type:      $($responseAIPDB.data.usageType)
-AbuseIPDB: Hostname:  $($responseAIPDB.data.hostnames)
-AbuseIPDB: Domain:    $($responseAIPDB.data.domain)
-AbuseIPDB: Country:   $($responseAIPDB.data.countryCode)
+AbuseIPDB  - ISP:`t`t$($responseAIPDB.data.isp)
+AbuseIPDB  - Type:`t`t$($responseAIPDB.data.usageType)
+AbuseIPDB  - Hostname:`t$($responseAIPDB.data.hostnames)
+AbuseIPDB  - Domain:`t$($responseAIPDB.data.domain)
+AbuseIPDB  - Country:`t$($responseAIPDB.data.countryCode)
  
-VirusTotal: AS owner: $($responseVT.data.attributes.as_owner)
-VirusTotal: Country:  $($responseVT.data.attributes.country)
+VirusTotal - AS owner:`t$($responseVT.data.attributes.as_owner)
+VirusTotal - Country:`t$($responseVT.data.attributes.country)
  
-Shodan: ISP:          $($responseShoda.isp)
-Shodan: ORG:          $($responseShoda.org)
-Shodan: HostName:     $($responseShoda.hostnames)
-Shodan: Country:      $($responseShoda.country_code)
+Shodan     - ISP:`t`t$($responseShoda.isp)
+Shodan     - ORG:`t`t$($responseShoda.org)
+Shodan     - HostName:`t$($responseShoda.hostnames)
+Shodan     - Country:`t$($responseShoda.country_code)
 "
 WL
 Write-Host ""
 WL
 Write-Host "
-Shodan: Last Update: $($responseShoda.last_update)
- -`tOS:`t`t`t$($responseShoda.os)
- -`tPorts:`t`t$($responseShoda.ports)
- -`tHost:`t`t$($responseShoda.ip_str)
+Shodan: 
+-`tLast Update:`t`t$($responseShoda.last_update)
+-`tOS:`t`t`t`t`t$($responseShoda.os)
+-`tPorts:`t`t`t`t$($responseShoda.ports)
+-`tHost:`t`t`t`t$($responseShoda.ip_str)
 
-AbuseIPDB: $($responseAIPDB.data.lastReportedAt)
+AbuseIPDB: 
+-`tLast Update:`t`t$($responseAIPDB.data.lastReportedAt)
 -`tTotal Reports:`t`t$($responseAIPDB.data.totalReports)
 -`tConfidence Score:`t$($responseAIPDB.data.abuseConfidenceScore)
 
 VirusTotal:
 -`tLast Stats: 
-`t`tMalicious:  $($responseVT.data.attributes.last_analysis_stats.malicious)
-`t`tSuspicious: $($responseVT.data.attributes.last_analysis_stats.suspicious)
-`t`tHarmless:   $($responseVT.data.attributes.last_analysis_stats.harmless)
-`t`tUndetected: $($responseVT.data.attributes.last_analysis_stats.undetected)
+`t`tMalicious:`t`t$($responseVT.data.attributes.last_analysis_stats.malicious)
+`t`tSuspicious:`t`t$($responseVT.data.attributes.last_analysis_stats.suspicious)
+`t`tHarmless:`t`t$($responseVT.data.attributes.last_analysis_stats.harmless)
+`t`tUndetected:`t`t$($responseVT.data.attributes.last_analysis_stats.undetected)
 
-Maltiverse: Last Update: $($responseMalti.modification_time)
--`tClassification:`t$($responseMalti.classification)
+Maltiverse: 
+-`tLast Update:`t`t$($responseMalti.modification_time)
+-`tClassification:`t`t$($responseMalti.classification)
 
 "
 WL
@@ -165,7 +171,8 @@ Write-Host "
 AlienVault Pulse Names:
 $(foreach ($listName in $responseAlien.pulse_info.pulses.name | group |select -expand name){"`n-`t$listName"}
 )
-"
 
+"
+WL
 
 } # function
