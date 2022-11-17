@@ -5,7 +5,7 @@ function Invoke-IPReputationCheck
 
     Param
     (
-        # Param1 help description
+        # IP address to check
         [Parameter(Mandatory=$true,
                    ValueFromPipelineByPropertyName=$true,
                    Position=0)]
