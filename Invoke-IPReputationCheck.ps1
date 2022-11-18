@@ -1,19 +1,35 @@
-#IP api tools
-
-
 function Invoke-IPReputationCheck
 {
+<#
+.Synopsis
+   Check IP address reputation from few sources.
+.DESCRIPTION
+   Function is checking IP reputation from VirusTotal, AbuseIPDB, AlienVault, Shodan.io and Maltiverse. 
+   You need to pre make API keys and add them to the script under the comment apiKeys.
+   There is not much error handling in this version.
+.EXAMPLE
+   Invoke-IPReputationCheck -IPaddress 8.8.8.8
+.EXAMPLE
+   Resolve-DnsName google.com | Invoke-IPReputationCheck
+.EXAMPLE
+   IPRC 8.8.8.8
+#>
+
+
     [CmdletBinding()]
     [Alias("IPRC")]
 
     Param
     (
-        # Param1 help description
+        # IP address to check
         [Parameter(Mandatory=$true,
+                   ValueFromPipeline=$true,
                    ValueFromPipelineByPropertyName=$true,
                    Position=0)]
-        [ipaddress]$IP
+        [ipaddress]$IPaddress
     )
+
+
 
 function WL {write-host '=========================================='}
 
@@ -27,12 +43,12 @@ $apiKeyMaltiverse = ''
     
 #VirusTotal
 $headerVT = @{'x-apikey'=$apiKeyVirusTotal}
-$uriVT    = "https://www.virustotal.com/api/v3/ip_addresses/$ip"
+$uriVT    = "https://www.virustotal.com/api/v3/ip_addresses/$IPaddress"
 
 #Abuse.ch
 $BodyABCH   = @{
                     'query'='search_ioc' 
-                    'search_term'=$ip
+                    'search_term'=$IPaddress
                    } | ConvertTo-Json
 $uriABCH    = "https://threatfox-api.abuse.ch/api/v1/"
 
@@ -40,7 +56,7 @@ $uriABCH    = "https://threatfox-api.abuse.ch/api/v1/"
 #AbuseIPDB
 $uriAIPDB    = 'https://api.abuseipdb.com/api/v2/check'
 $BodyAIPDB   = @{
-                    "ipAddress"="$ip"
+                    "ipAddress"="$IPaddress"
                     "maxAgeInDays"="90"
                 }
 
@@ -51,14 +67,14 @@ $headerAIPDB = @{
 
 
 #AlienVault
-$uriAlien    = "https://otx.alienvault.com/api/v1/indicators/IPv4/$ip/general"
+$uriAlien    = "https://otx.alienvault.com/api/v1/indicators/IPv4/$IPaddress/general"
 $headerAlien = @{
                 'X-OTX-API-KEY'=$apiKeyAlienVault
                 }
 
 
 #Shodan.io
-$uriShoda    = "https://api.shodan.io/shodan/host/$ip"
+$uriShoda    = "https://api.shodan.io/shodan/host/$IPaddress"
 $BodyShoda   = @{
                     "key"="$apiKeyShodanIO"
                 }
@@ -66,7 +82,7 @@ $BodyShoda   = @{
 
 #Maltiverse
 $headerMalti = @{'Authorization'= "Bearer $apiKeyMaltiverse"}
-$uriMalti    = "https://api.maltiverse.com/ip/$ip"
+$uriMalti    = "https://api.maltiverse.com/ip/$IPaddress"
 
 WL
 try {
@@ -138,9 +154,8 @@ Shodan     - ISP:`t`t$($responseShoda.isp)
 Shodan     - ORG:`t`t$($responseShoda.org)
 Shodan     - HostName:`t$($responseShoda.hostnames)
 Shodan     - Country:`t$($responseShoda.country_code)
+
 "
-WL
-Write-Host ""
 WL
 Write-Host "
 Shodan: 
