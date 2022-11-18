@@ -5,12 +5,22 @@ function Invoke-IPReputationCheck
    Check IP address reputation from few sources.
 .DESCRIPTION
    Function is checking IP reputation from VirusTotal, AbuseIPDB, AlienVault, Shodan.io and Maltiverse. 
-   You need to pre make API keys and add them to the script under the comment apiKeys.
+   You need to pre make API keys and either add them to the script under the comment apiKeys or save them to csv.
+
+    Example of CSV content:
+
+    Name,Value                                                                                                                                                                                                                                                                                                                                                                                                                                                    
+    apiKeyAlienVault,"valuevaluevalue1"                                                                                                                                                                
+    apiKeyShodanIO,"valuevaluevalue2"
+    apiKeyMaltiverse,"valuevaluevalue3"
+    apiKeyAbuseIPDB,"valuevaluevalue4"
+    apiKeyVirusTotal,"valuevaluevalue5"
+
    There is not much error handling in this version.
 .EXAMPLE
    Invoke-IPReputationCheck -IPaddress 8.8.8.8
 .EXAMPLE
-   Resolve-DnsName google.com | Invoke-IPReputationCheck
+   Resolve-DnsName google.com | Invoke-IPReputationCheck -ApiKeysCSV c:\temp\apikey.csv
 .EXAMPLE
    IPRC 8.8.8.8
 #>
@@ -26,7 +36,14 @@ function Invoke-IPReputationCheck
                    ValueFromPipeline=$true,
                    ValueFromPipelineByPropertyName=$true,
                    Position=0)]
-        [ipaddress]$IPaddress
+        [ipaddress]$IPaddress,
+
+        # APIkeys CSV
+        [Parameter(Mandatory=$false,
+                   ValueFromPipeline=$true,
+                   ValueFromPipelineByPropertyName=$true,
+                   Position=1)]
+        [string]$ApiKeysCSV
     )
 
 
@@ -39,6 +56,19 @@ $apiKeyAbuseIPDB  = ''
 $apiKeyAlienVault = ''
 $apiKeyShodanIO   = ''
 $apiKeyMaltiverse = ''
+
+
+if($ApiKeysCSV){
+
+    $apiKeysImport = Import-Csv $ApiKeysCSV
+
+    $apiKeyVirusTotal = $apiKeysImport | where {$_.name -eq 'apiKeyVirusTotal'} | select -expand value
+    $apiKeyAbuseIPDB  = $apiKeysImport | where {$_.name -eq 'apiKeyAbuseIPDB'}  | select -expand value  
+    $apiKeyAlienVault = $apiKeysImport | where {$_.name -eq 'apiKeyAlienVault'} | select -expand value  
+    $apiKeyShodanIO   = $apiKeysImport | where {$_.name -eq 'apiKeyShodanIO'}   | select -expand value  
+    $apiKeyMaltiverse = $apiKeysImport | where {$_.name -eq 'apiKeyMaltiverse'} | select -expand value  
+
+} #apikeys
 
     
 #VirusTotal
