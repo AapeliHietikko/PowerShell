@@ -43,6 +43,10 @@ function Invoke-IPReputationCheck
                    ValueFromPipeline=$true,
                    ValueFromPipelineByPropertyName=$true,
                    Position=1)]
+        [ValidateScript({
+            if(Test-Path $_){$true}
+            else{throw "Path $_ is not valid"}
+        })]
         [string]$ApiKeysCSV
     )
 
