@@ -27,7 +27,19 @@ function Invoke-SQLQuery
         [Parameter(Mandatory=$true,
                    ValueFromPipelineByPropertyName=$true)]
        
-        $SQLQuery
+        $SQLQuery,
+
+        # Specify Database user id
+        [Parameter(Mandatory=$false,
+                   ValueFromPipelineByPropertyName=$true)]
+        [string]
+        $UserID,
+
+        # Specify Database user password
+        [Parameter(Mandatory=$false,
+                   ValueFromPipelineByPropertyName=$true)]
+        [string]
+        $Password
     )
 
     Begin
@@ -40,8 +52,16 @@ function Invoke-SQLQuery
         
         #SQL
         $SqlConnection                  = New-Object System.Data.SqlClient.SqlConnection
-        $SqlConnection.ConnectionString = "Server = $Computername; Database = $DataBase; Integrated Security = True"
         
+        if ($UserID -and $password)
+        {
+            $SqlConnection.ConnectionString = "Server = $Computername; Database = $DataBase; User Id=$UserID; Password=$Password;"
+        }
+        else
+        {
+            $SqlConnection.ConnectionString = "Server = $Computername; Database = $DataBase; Integrated Security = True"
+        }
+
         #SQL commands
         $SqlCmd = New-Object System.Data.SqlClient.SqlCommand
         $SqlCmd.CommandText = $SQLQuery
